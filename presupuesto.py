@@ -4,6 +4,8 @@ paths=[
     os.path.join(BASE_DIR,'Dieta'),
     os.path.join(BASE_DIR,'Inicio'),
     os.path.join(BASE_DIR,'Inventario'),
+    os.path.join(BASE_DIR,'templates'),
+    os.path.join(BASE_DIR,'Camaronera'),
 
 ]
 total= 0
