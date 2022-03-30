@@ -1,0 +1,153 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load mathfilters %}
+{% block styles %}
+    <link rel="stylesheet" href="{% static 'plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}">
+{% endblock %}
+{% block principal %}
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">Dietas: Meses</h1>
+                </div><!-- /.col -->
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <div class="btn-group">
+                            <a type="button" href="/" class="btn btn-default">Dashboard</a>
+                            <a type="button" href="{% url 'yeardiet' %}" class="btn btn-default">Años</a>
+                            {% if faltantes %}
+                            <a type="button" data-toggle="modal" data-target="#modal-edit" id="nuevo" class="btn btn-default">Registar Mes</a>
+                            <a type="button" href="/month/{{ id }}/?generar=ok" class="btn btn-default">Generar Meses Faltantes</a>
+                            {% endif %}
+                          </div>
+                    </ol>
+                </div><!-- /.col -->
+            </div><!-- /.row -->
+        </div><!-- /.container-fluid -->
+    </div>
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <!-- /.card -->
+                    <div class="card">
+                        <!-- /.card-header -->
+                        <div class="card-body">
+                            <div class="row">
+                                {% for mes in meses %}
+                                <div class="col-md-3 col-sm-6 col-12">
+                                    <div class="info-box {% if mes.dias_set.all.count|div:30|mul:100 < 40 %}bg-success{% elif mes.dias_set.all.count|div:30|mul:100 == 50%}bg-warning{% else %}bg-danger{% endif %}">
+                                        <span class="info-box-icon"><i class="fas fa-calendar-alt"></i></span>
+
+                                        <div class="info-box-content">
+                                            <span class="info-box-number">Mes: {{ mes }}
+                                            <a href="/month/{{ mes.anio.id }}/?remove={{ mes.id }}" style="color: white"><i class="fa fa-trash"></i></a>
+                                            </span>
+                                            <div class="progress">
+                                                <div class="progress-bar" style="width: {{ mes.dias_set.all.count|div:30|mul:100|floatformat:0 }}%"></div>
+                                            </div>
+                                            <span class="progress-description">{{ mes.dias_set.all.count|div:30|mul:100|floatformat:2}} % en {{ mes.dias_set.all.count }} Días</span>
+                                            <span><a href="/day/{{ mes.id }}/" style="color: white">Ver Registros</a></span>
+                                        </div>
+                                        <!-- /.info-box-content -->
+                                    </div>
+                                    <!-- /.info-box -->
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <!-- /.card-body -->
+                    </div>
+                    <!-- /.card -->
+                </div>
+                <!-- /.col -->
+            </div>
+            <!-- /.row -->
+        </div>
+        <!-- /.container-fluid -->
+    </section>
+
+    <div class="modal fade" id="modal-edit" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="card card-info">
+                        <div class="card-header">
+                            <h3 class="card-title">Modificar Año</h3>
+                        </div>
+                        <!-- /.card-header -->
+                        <!-- form start -->
+                        <form class="form-horizontal" id="editarCategoria" method="post">
+                            {% csrf_token %}
+                            <div class="card-body">
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Mes</label>
+                                    <div class="col-sm-9">
+                                        <select name="numero" id="numero" class="form-control" required="required">
+                                            {% for faltante in faltantes %}
+                                                <option value="{{ faltante.n }}">{{ faltante.mes }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /.card-body -->
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-info">Registrar</button>
+                                <button type="button" data-dismiss="modal" class="btn btn-default float-right">
+                                    Cancelar
+                                </button>
+                            </div>
+                            <!-- /.card-footer -->
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/jszip/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/pdfmake/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/pdfmake/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
+    <script>
+        $(function () {
+            $("#example1").DataTable({
+                "responsive": true, "lengthChange": true, "autoWidth": true,
+                "buttons": ["copy", "excel", "pdf", "print", "colvis"]
+            }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+        });
+    </script>
+    <script>
+        $(".datos").click(function () {
+            let id = $(this).data('id');
+            let nombre = $(this).data('nombre');
+            let descripcion = $(this).data('descripcion');
+            $("#editarCategoria").attr('action', '/category/?edit=' + id)
+            $("#nombre").val(nombre)
+            $("#descripcion").val(descripcion)
+        })
+
+        $("#nuevo").click(function () {
+            $("#editarCategoria").attr('action', '/month/{{ id }}/?new=ok')
+            $("#mes").val('')
+        })
+    </script>
+{% endblock %}
+

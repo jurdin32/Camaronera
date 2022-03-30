@@ -1,0 +1,224 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load productos_tags %}
+{% block styles %}
+    <link rel="stylesheet" href="{% static 'plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}">
+{% endblock %}
+{% block principal %}
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">Inventario de Existencias</h1>
+                </div><!-- /.col -->
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <div class="btn-group">
+                            <a type="button" href="/" class="btn btn-default">Dasboard</a>
+                            <a type="button" href="{% url 'inventario_existencias' %}" class="btn btn-default">Volver</a>
+                            {% for empresa in empresas %}
+                            <a type="button" href="{{ request.get_full_path }}&business={{ empresa.id }}" class="btn btn-default">{{ empresa.siglas }}</a>
+                            {% endfor %}
+                            <select name="" id="tipo">
+                                <option value="">Todos</option>
+                                <option value="INGRESO" {% if request.GET.type == 'INGRESO' %}selected="selected" {% endif %}>Ingresos</option>
+                                <option value="EGRESO" {% if request.GET.type == 'EGRESO' %}selected="selected" {% endif %}>Egresos</option>
+                            </select>
+
+                        </div>
+                    </ol>
+                </div><!-- /.col -->
+            </div><!-- /.row -->
+        </div><!-- /.container-fluid -->
+    </div>
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <!-- /.card -->
+                    <div class="card">
+                        <!-- /.card-header -->
+                        <div class="card-body">
+                            <table id="example1" class="table table-bordered table-striped">
+                                <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Nombre</th>
+                                    <th>Fecha</th>
+                                    <th style="width: 40%">Detalles</th>
+                                    <th>Cantidad</th>
+                                    <th style="text-align: center">Tipo</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for producto in productos %}
+                                    <tr>
+                                        <td>{{ producto.producto.id }}</td>
+                                        <td>
+                                            {% if not producto.detalle_dieta %}
+                                            {{ producto.fecha|date:"d/M/Y" }}
+                                                {% else %}
+                                                {{ producto.detalle_dieta.dieta.dia.dia|date:"d/M/Y" }}
+                                            {% endif %}
+                                            </td>
+                                        <td>{{ producto.producto.nombre }}</td>
+                                        <td>{{ producto.descripcion }}</td>
+                                        <td>{{ producto.cantidad}} {{ producto.producto.unidad }}</td>
+                                        <td style="text-align: center">{{producto.tipo}}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.card-body -->
+                    </div>
+                    <!-- /.card -->
+                </div>
+                <!-- /.col -->
+            </div>
+            <!-- /.row -->
+        </div>
+        <!-- /.container-fluid -->
+    </section>
+
+    <div class="modal fade" id="modal-edit" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="card card-info">
+                        <div class="card-header">
+                            <h3 class="card-title">Crear Producto</h3>
+                        </div>
+                        <!-- /.card-header -->
+                        <!-- form start -->
+                        <form class="form-horizontal" id="editarProducto" enctype="multipart/form-data" method="post">
+                            {% csrf_token %}
+                            <div class="card-body">
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Nombre</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" required="required" class="form-control" id="nombre"
+                                               name="nombre" placeholder="Ingrese el nombre">
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Categoría</label>
+                                    <div class="col-sm-9">
+                                        <select name="categoria" id="categoria" onchange="subcategorias($(this).val())"
+                                                class="form-control">
+                                            {% for categoria in categorias %}
+                                                <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">SubCategoría</label>
+                                    <div class="col-sm-9">
+                                        <select name="subcategoria" id="subcategoria" class="form-control"></select>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Presentación</label>
+                                    <div class="col-sm-9">
+                                        <select name="presentacion" id="presentacion" onchange="unidades($(this).val())"
+                                                class="form-control">
+                                            {% for pres in presentacion %}
+                                                <option value="{{ pres.id }}">{{ pres.nombre }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Peso Presentación</label>
+                                    <div class="col-sm-9">
+                                        <input type="number" required="required" step="0.0001" class="form-control"
+                                               id="peso" name="peso">
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Unidad de Medida</label>
+                                    <div class="col-sm-9">
+                                        <select name="unidad" id="unidad" class="form-control"></select>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Costo</label>
+                                    <div class="col-sm-9">
+                                        <input type="number" required="required" step="0.0001" class="form-control"
+                                               id="costo" name="costo">
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Stock Minímo</label>
+                                    <div class="col-sm-9">
+                                        <input type="number" required="required" step="0.0001" class="form-control"
+                                               id="stock" name="stock">
+                                    </div>
+                                </div>
+                                <div class="input-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Imagen</label>
+                                    <div class="col-sm-9">
+                                        <div class="custom-file">
+                                            <input type="file" class="custom-file-input" id="imagen" name="imagen">
+                                            <label class="custom-file-label" for="imagen">Seleccione</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group row" id="aplicacion" style="padding-top: 20px">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Forma de Aplicación: Gramo x
+                                        Kilo</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" placeholder="4/2.2" class="form-control"
+                                               id="forma_aplicacion" name="forma_aplicacion">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- /.card-body -->
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-info">Registrar</button>
+                                <button type="button" data-dismiss="modal" class="btn btn-default float-right">
+                                    Cancelar
+                                </button>
+                            </div>
+                            <!-- /.card-footer -->
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/jszip/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/pdfmake/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/pdfmake/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
+    <script src="{% static 'plugins/bs-custom-file-input/bs-custom-file-input.min.js' %}"></script>
+    <script>
+        $("#example1").DataTable({
+                "responsive": true, "lengthChange": true, "autoWidth": true,
+                "buttons": ["copy", "excel", "pdf", "print", "colvis"]
+            }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+
+        $("#tipo").change(function(){
+            location.href="{{ request.get_full_path }}&type="+$(this).val()
+        })
+    </script>
+{% endblock %}
+

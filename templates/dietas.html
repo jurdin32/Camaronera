@@ -1,0 +1,333 @@
+{% extends 'index.html' %}
+{% load productos_tags %}
+{% load static %}
+{% block styles %}
+    <link rel="stylesheet" href="{% static 'plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}">
+{% endblock %}
+{% block principal %}
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">Registrar Dietas</h1>
+                </div><!-- /.col -->
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <div class="btn-group">
+                            <a type="button" href="/" class="btn btn-default">Dasboard</a>
+                            <a type="button" class="btn btn-default" href="/day/{{ dia.mes.id }}/">Ver los días</a>
+                        </div>
+                    </ol>
+                </div><!-- /.col -->
+            </div><!-- /.row -->
+        </div><!-- /.container-fluid -->
+    </div>
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <!-- /.card -->
+                    <div class="card">
+                        <!-- /.card-header -->
+                        <div class="card-body">
+                            <table id="example1" class="table table-bordered table-striped">
+                                <thead>
+                                <tr>
+                                    <th style="text-align: center; width: 5%">Id</th>
+                                    <th style="text-align: center; width:20%">Piscina</th>
+                                    <th style="width:75%">Balanceado & Insumos</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for piscina in piscinas %}
+                                    <tr>
+                                        <td style="text-align: center">{{ piscina.id }}</td>
+                                        <td style="text-align: center">{{ piscina.slug }}</td>
+                                        <td>
+                                            <div class="card-body p-0" style="width: 100%;">
+                                                <table class="table table-sm d{{ dia.id }}p{{ piscina.id }}">
+                                                    <thead>
+                                                    <tr>
+                                                        <th style="width: 10px">#</th>
+                                                        <th>Balanceado & Insumo</th>
+                                                        <th style="width: 100px">Cantidad</th>
+                                                        <th style="width: 100px">Opciones <a href=""
+                                                                                             data-dia="{{ dia.id }}"
+                                                                                             data-piscina="{{ piscina.id }}"
+                                                                                             data-slug="{{ piscina.slug }}"
+                                                                                             data-toggle="modal"
+                                                                                             data-target="#modal-edit"
+                                                                                             class="text-danger nuevo"><i
+                                                                class="fa fa-plus-circle"></i></a></th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    {% for d in detalles %}
+                                                        {% if d.dieta.piscina_id == piscina.id %}
+                                                            <tr>
+                                                                <td>{{ d.id }}</td>
+                                                                <td>{{ d.producto.nombre }}</td>
+                                                                <td>{{ d.cantidad }}</td>
+                                                                <td>
+                                                                    <a class="btn btn-success edit"
+                                                                       onclick="modificar({{ d.id }},{{ d.producto_id }},'{{ d.dieta.piscina.numero }}',{{ d.cantidad }})"
+                                                                       data-piscina="{{ d.dieta.piscina.slug }}"
+                                                                       data-id='{{ d.id }}'
+                                                                       data-prod='{{ d.producto_id }}'
+                                                                       data-cant='{{ d.cantidad }}'>
+                                                                        <i class="fa fa-edit"></i>
+                                                                    </a>
+                                                                    <a onclick="eliminarFila($(this),{{ d.id }})"
+                                                                       class="btn btn-danger remove"><i
+                                                                            class="fa fa-trash"></i></a>
+                                                                </td>
+                                                            </tr>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.card-body -->
+                    </div>
+                    <!-- /.card -->
+                </div>
+                <!-- /.col -->
+            </div>
+            <!-- /.row -->
+        </div>
+        <!-- /.container-fluid -->
+    </section>
+
+    <div class="modal fade" id="modal-edit" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="card card-info">
+                        <div class="card-header">
+                            <h3 class="card-title">Nuevo Registro</h3>
+                        </div>
+                        <!-- /.card-header -->
+                        <!-- form start -->
+                        <form class="form-horizontal" id="editar" enctype="multipart/form-data" method="post">
+                            {% csrf_token %}
+                            <div class="card-body">
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Fecha</label>
+                                    <div class="col-sm-9">
+                                        <input type="date" readonly="readonly" name="fecha" id="fecha"
+                                               value="{{ dia.dia|date:"Y-m-d" }}" class="form-control"
+                                               required="required">
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="piscina" class="col-sm-3 col-form-label">Piscina</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" id="piscina" readonly="readonly" name="piscina"
+                                               class="form-control" required="required">
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Balanceado e insumos</label>
+                                    <div class="col-sm-9">
+                                        <select name="productos" class="form-control" id="productos">
+                                            {% for producto in productos %}
+                                                <option factor="{{ producto.forma_aplicacion }}"
+                                                        value="{{ producto.id }}">{{ producto.subcategoria.categoria }}
+                                                    - {{ producto.nombre }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row" id="factor">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Factor de Aplicación</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" readonly="readonly" name="aplicacion" id="aplicacion"
+                                               class="form-control" required="required">
+                                    </div>
+                                </div>
+
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Cantidad</label>
+                                    <div class="col-sm-9">
+                                        <input type="number" name="cantidad" id="cantidad" class="form-control cantidad"
+                                               required="required">
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <!-- /.card-body -->
+                            <div class="card-footer">
+                                <button type="button" id="registrar" class="btn btn-info">Registrar</button>
+                                <button type="button" data-dismiss="modal" class="btn btn-default float-right">
+                                    Cancelar
+                                </button>
+                            </div>
+                            <!-- /.card-footer -->
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/jszip/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/pdfmake/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/pdfmake/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
+    <script src="{% static 'plugins/bs-custom-file-input/bs-custom-file-input.min.js' %}"></script>
+    <script>
+        var piscina = 0
+        var bandera = 0
+        $("#example1").DataTable({
+                "responsive": true, "lengthChange": true, "autoWidth": true,
+            }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+        $(".nuevo").click(function () {
+            $("#editar").attr('action', '/business/')
+            $("#piscina").val($(this).data('slug'))
+            piscina = $(this).data('piscina')
+            bandera = 0
+        })
+        $("#productos").change(function () {
+            let fac = $('option:selected', this).attr('factor');
+            $("#aplicacion").val(fac)
+            if (parseInt(fac) === 0) {
+                $("#factor").hide()
+                if (bandera === 0) {
+                    $("#cantidad").val(0);
+                } else {
+                    $("#cantidad").val(sessionStorage.getItem('balanceado'))
+                }
+
+            } else {
+                $("#factor").show()
+                let total = parseFloat(sessionStorage.getItem('balanceado')) * eval($("#aplicacion").val())
+                console.log("factor: ", eval($("#aplicacion").val()))
+                $("#cantidad").val(total.toFixed(0))
+            }
+
+        }).change()
+
+        function bsesion() {
+            sessionStorage.setItem('balanceado', $("#cantidad").val());
+            console.log(sessionStorage.getItem('balanceado'))
+        }
+
+        function eliminarFila(fila, id) {
+            console.log(fila.parent().parent().remove());
+            $.get("/diet/{{ dia.id }}/?remove=" + id, function (result) {
+                console.log(result)
+            });
+        }
+
+        var id = 0
+        function modificar(ids,prod,piscina,cantidad){
+            $("#productos").find('option').each(function () {
+                $(this).removeAttr('selected');
+            });
+            bandera = 1
+            id=ids
+            $("#piscina").val("PISCINA "+piscina)
+            $("#productos option[value=" + prod + "]").attr("selected", "selected");
+            let fac = $('option:selected', $('#productos')).attr('factor');
+            if (fac === 0) {
+                let total = parseFloat(sessionStorage.getItem('balanceado')) * eval($("#aplicacion").val())
+                console.log("factor: ", eval($("#aplicacion").val()))
+                $("#cantidad").val(total.toFixed(0))
+            }
+            $("#cantidad").val(cantidad)
+            sessionStorage.setItem('balanceado', cantidad)
+            $("#modal-edit").modal("show")
+            console.log("entro a modificar")
+        }
+
+        $("#registrar").click(function () {
+            console.log('preparado para registrar valor de la bandera es:', bandera)
+            if (bandera === 0) {
+                $.get("/diet/{{ dia.id }}/", {
+                    'piscina': piscina,
+                    'producto': $("#productos").val(),
+                    'cantidad': $("#cantidad").val()
+                }, function (resp) {
+                    let fac = $('option:selected', $('#productos')).attr('factor');
+                    if (fac == 0) {
+                        bsesion()
+                    }
+                    $.get("/dieta/" + resp + "/", function (result) {
+
+                        $(".d{{ dia.id }}p" + piscina + " tbody").html("")
+                        for (dato of result) {
+                            markup = "<tr>" +
+                                "<td>" + dato.id + "</td>" +
+                                "<td>" + dato.producto + "</td>" +
+                                "<td>" + dato.cantidad + "</td>" +
+                                '<td>' +
+                                '<a onclick="modificar('+dato.id+','+dato.id_prod+','+dato.piscina_n+','+dato.cantidad+')" class="btn btn-success edit" data-piscina="' + dato.piscina + '" data-id=' + dato.id + ' data-prod=' + dato.id_prod + ' data-cant=' + dato.cantidad + '><i class="fa fa-edit"></i></a> ' +
+                                ' <a onclick="eliminarFila($(this),' + dato.id + ')" class="btn btn-danger remove"><i class="fa fa-trash"></i></a>' +
+                                '</td>' +
+                                '</tr>'
+                            tableBody = $(".d{{ dia.id }}p" + piscina + " tbody");
+                            tableBody.append(markup);
+                        }
+                    })
+
+                })
+            }
+            else {
+                $.get("/diet/{{ dia.id }}/", {
+                    'edit': id,
+                    'producto': $("#productos").val(),
+                    'cantidad': $("#cantidad").val()
+                }, function (resp) {
+                    console.log(resp)
+                    let fac = $('option:selected', $('#productos')).attr('factor');
+                    if (fac == 0) {
+                        bsesion()
+                    }
+                    bandera=1
+                    $.get("/dieta/" + resp + "/", function (result) {
+                        console.log(result)
+                        let markup=""
+                        for (dato of result) {
+                            markup +="<tr>" +
+                                "<td>" + dato.id + "</td>" +
+                                "<td>" + dato.producto + "</td>" +
+                                "<td>" + dato.cantidad + "</td>" +
+                                '<td>' +
+                                '<a onclick="modificar('+dato.id+','+dato.id_prod+','+dato.piscina_n+','+dato.cantidad+')" class="btn btn-success edit" data-piscina="' + dato.piscina + '" data-id=' + dato.id + ' data-prod=' + dato.id_prod + ' data-cant=' + dato.cantidad + '><i class="fa fa-edit"></i></a> ' +
+                                ' <a onclick="eliminarFila($(this),' + dato.id + ')" class="btn btn-danger remove"><i class="fa fa-trash"></i></a>' +
+                                '</td>' +
+                                '</tr>'
+                            piscina=dato.id_piscina
+                        }
+                        $(".d{{ dia.id }}p" + piscina + " tbody").html("")
+                        tableBody = $(".d{{ dia.id }}p" + piscina + " tbody");
+                        tableBody.append(markup);
+                    })
+                })
+            }
+        })
+    </script>
+{% endblock %}
+

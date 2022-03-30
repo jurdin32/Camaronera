@@ -1,0 +1,222 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block styles %}
+  <link rel="stylesheet" href="{% static 'plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}">
+{% endblock %}
+{% block principal %}
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0">Empresas</h1>
+          </div><!-- /.col -->
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+                <div class="btn-group">
+                    <a type="button" href="/" class="btn btn-default">Dasboard</a>
+                    <a type="button" class="btn btn-default" data-toggle="modal" data-target="#modal-edit" id="nuevo" href="#">Registrar de Empresa</a>
+                </div>
+            </ol>
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </div>
+<section class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-12">
+          <!-- /.card -->
+            <div class="card">
+              <!-- /.card-header -->
+              <div class="card-body">
+                <table id="example1" class="table table-bordered table-striped">
+                  <thead>
+                  <tr>
+
+
+
+                    <th style="text-align: center">Siglas</th>
+                    <th >Nombre</th>
+                    <th >RUC</th>
+                    <th style="text-align: center">Actividad</th>
+                    <th >Dirección</th>
+                    <th style="text-align: center">Opciones</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% for emp in empresas %}
+                   <tr>
+                        <td>{{ emp.siglas }}</td>
+                        <td>{{ emp.razon_social }}</td>
+                        <td>{{ emp.ruc }}</td>
+                        <td>{{ emp.actividad }}</td>
+                        <td>{{ emp.direccion }}</td>
+                       <td style="text-align: center">
+                            <div class="btn-group">
+                                <a href="#" data-toggle="modal" data-target="#modal-edit" class="btn btn-primary datos"
+                                   data-id="{{ emp.id }}"
+                                   data-usuario="{{ emp.usuario_id }}"
+                                   data-razon_social="{{ emp.razon_social }}"
+                                   data-ruc="{{ emp.ruc }}"
+                                   data-direccion="{{ emp.direccion }}"
+                                   data-siglas="{{ emp.siglas }}"
+                                   data-fecha="{{ emp.fecha_apertura|date:"Y-m-d" }}"
+                                   data-actividad="{{ emp.actividad }}"
+                                ><i class="fa fa-edit"></i></a>
+                                <a href="/business/?status={{ emp.id }}" class="btn btn-danger">
+                                    <i class="fa fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+          </div>
+          <!-- /.col -->
+        </div>
+        <!-- /.row -->
+      </div>
+      <!-- /.container-fluid -->
+    </section>
+
+        <div class="modal fade" id="modal-edit" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-body">
+                <div class="card card-info">
+              <div class="card-header">
+                <h3 class="card-title">Crear Piscina</h3>
+              </div>
+              <!-- /.card-header -->
+              <!-- form start -->
+              <form class="form-horizontal" id="editar" enctype="multipart/form-data" method="post">
+              {% csrf_token %}
+                <div class="card-body">
+                  <div class="form-group row">
+                    <label for="nombre" class="col-sm-3 col-form-label">Razón Social</label>
+                    <div class="col-sm-9">
+                        <input type="text" id="razon_social" name="razon_social" class="form-control" required="required">
+                    </div>
+                  </div>
+
+                  <div class="form-group row">
+                    <label for="nombre" class="col-sm-3 col-form-label">RUC</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="ruc"  id="ruc" class="form-control" required="required">
+                    </div>
+                  </div>
+
+                    <div class="form-group row">
+                    <label for="nombre" class="col-sm-3 col-form-label">Siglas</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="siglas"  id="siglas" class="form-control" required="required">
+                    </div>
+                  </div>
+
+                    <div class="form-group row">
+                    <label for="nombre" class="col-sm-3 col-form-label">Dirección</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="direccion"  id="direccion" class="form-control" required="required">
+                    </div>
+                  </div>
+                    <div class="form-group row">
+                    <label for="nombre" class="col-sm-3 col-form-label">Fecha Apertura</label>
+                    <div class="col-sm-9">
+                        <input type="date" name="fecha"  id="fecha" class="form-control" required="required">
+                    </div>
+                  </div>
+                    <div class="form-group row">
+                    <label for="nombre" class="col-sm-3 col-form-label">Actividad</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="actividad"  id="actividad" class="form-control" required="required">
+                    </div>
+                  </div>
+                    <div class="input-group">
+                      <label for="nombre" class="col-sm-3 col-form-label">Logo</label>
+                    <div class="col-sm-9">
+                      <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="logo" name="logo">
+                        <label class="custom-file-label" for="imagen">Seleccione</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
+                <!-- /.card-body -->
+                <div class="card-footer">
+                  <button type="submit" class="btn btn-info">Registrar</button>
+                  <button type="button" data-dismiss="modal" class="btn btn-default float-right">Cancelar</button>
+                </div>
+                <!-- /.card-footer -->
+              </form>
+            </div>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+
+
+{% endblock %}
+{% block script %}
+<script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
+<script src="{% static 'plugins/jszip/jszip.min.js' %}"></script>
+<script src="{% static 'plugins/pdfmake/pdfmake.min.js' %}"></script>
+<script src="{% static 'plugins/pdfmake/vfs_fonts.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
+<script src="{% static 'plugins/bs-custom-file-input/bs-custom-file-input.min.js' %}"></script>
+<script>
+  $(function () {
+    bsCustomFileInput.init();
+    $("#example1").DataTable({
+      "responsive": true, "lengthChange": true, "autoWidth": true,
+      "buttons": ["copy", "excel", "pdf", "print", "colvis"]
+    }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+  });
+
+
+    $("#nuevo").click(function(){
+        $("#editar").attr('action','/business/')
+        $("#razon_social").val("")
+        $("#ruc").val("")
+        $("#siglas").val("")
+        $("#direccion").val("")
+        $("#fecha").val("")
+        $("#actividad").val("")
+    })
+
+    $(".datos").click(function(){
+        let id=$(this).data('id');
+        $("#editar").attr('action',"/business/?edit="+id);
+        let razon_social=$(this).data('razon_social');
+        let ruc=$(this).data('ruc');
+        let direccion=$(this).data('direccion');
+        let fecha=$(this).data('fecha');
+        let siglas= $(this).data('siglas');
+        let actividad=$(this).data('actividad');
+        $("#razon_social").val(razon_social)
+        $("#ruc").val(ruc)
+        $("#direccion").val(direccion)
+        $("#fecha").val(fecha)
+        $("#siglas").val(siglas)
+        $("#actividad").val(actividad)
+    });
+    </script>
+{% endblock %}
+

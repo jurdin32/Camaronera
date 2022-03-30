@@ -1,0 +1,342 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block styles %}
+    <link rel="stylesheet" href="{% static 'plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}">
+{% endblock %}
+{% block principal %}
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">Registro de Productos</h1>
+                </div><!-- /.col -->
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <div class="btn-group">
+                            <a type="button" href="/" class="btn btn-default">Dasboard</a>
+                            <a type="button" data-toggle="modal" data-target="#modal-edit" id="nuevo" href="#"
+                               class="btn btn-default">Registrar Producto</a>
+                        </div>
+                    </ol>
+                </div><!-- /.col -->
+            </div><!-- /.row -->
+        </div><!-- /.container-fluid -->
+    </div>
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <!-- /.card -->
+                    <div class="card">
+                        <!-- /.card-header -->
+                        <div class="card-body">
+                            <table id="example1" class="table table-bordered table-striped">
+                                <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Nombre</th>
+                                    <th>Categoria</th>
+                                    <th>SubCategoría</th>
+                                    <th>Imágen</th>
+                                    <th>Opciones</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for producto in productos %}
+                                    <tr>
+                                        <td>{{ producto.id }}</td>
+                                        <td>{{ producto.nombre }}</td>
+                                        <td>{{ producto.subcategoria.categoria.nombre }}</td>
+                                        <td>{{ producto.subcategoria.nombre }}</td>
+                                        <td style="text-align: center">
+                                            <img style="width: 50px" src="/media/{{ producto.imagen }}" alt="">
+                                        </td>
+                                        <td style="text-align: center">
+                                            <div class="btn-group">
+                                                <a href="#" data-toggle="modal" data-target="#modal-edit"
+                                                   class="btn btn-primary datos"
+                                                   data-id="{{ producto.id }}"
+                                                   data-nombre="{{ producto.nombre }}"
+                                                   data-categoria="{{ producto.subcategoria.categoria_id }}"
+                                                   data-subcategoria="{{ producto.subcategoria_id }}"
+                                                   data-presentacion="{{ producto.presentacion_id }}"
+                                                   data-peso="{{ producto.peso }}"
+                                                   data-unidad="{{ producto.unidad_id }}"
+                                                   data-forma="{{ producto.forma_aplicacion }}"
+                                                   data-costo="{{ producto.costo }}"
+                                                   data-stock="{{ producto.stock_minimo }}"
+                                                ><i class="fa fa-edit"></i></a>
+                                                <a href="/product/?status={{ producto.id }}" class="btn btn-danger">
+                                                    {% if producto.estado %}<i class="fa fa-check"></i>{% else %}
+                                                        <i class="fa fa-ban"></i>{% endif %} </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.card-body -->
+                    </div>
+                    <!-- /.card -->
+                </div>
+                <!-- /.col -->
+            </div>
+            <!-- /.row -->
+        </div>
+        <!-- /.container-fluid -->
+    </section>
+
+    <div class="modal fade" id="modal-edit" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="card card-info">
+                        <div class="card-header">
+                            <h3 class="card-title">Crear Producto</h3>
+                        </div>
+                        <!-- /.card-header -->
+                        <!-- form start -->
+                        <form class="form-horizontal" id="editarProducto" enctype="multipart/form-data" method="post">
+                            {% csrf_token %}
+                            <div class="card-body">
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Nombre</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" required="required" class="form-control" id="nombre"
+                                               name="nombre" placeholder="Ingrese el nombre">
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Categoría</label>
+                                    <div class="col-sm-9">
+                                        <select name="categoria" id="categoria" onchange="subcategorias($(this).val())"
+                                                class="form-control">
+                                            {% for categoria in categorias %}
+                                                <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">SubCategoría</label>
+                                    <div class="col-sm-9">
+                                        <select name="subcategoria" id="subcategoria" class="form-control"></select>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Presentación</label>
+                                    <div class="col-sm-9">
+                                        <select name="presentacion" id="presentacion" onchange="unidades($(this).val())"
+                                                class="form-control">
+                                            {% for pres in presentacion %}
+                                                <option value="{{ pres.id }}">{{ pres.nombre }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Peso Presentación</label>
+                                    <div class="col-sm-9">
+                                        <input type="number" required="required" step="0.0001" class="form-control"
+                                               id="peso" name="peso">
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Unidad de Medida</label>
+                                    <div class="col-sm-9">
+                                        <select name="unidad" id="unidad" class="form-control"></select>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Costo</label>
+                                    <div class="col-sm-9">
+                                        <input type="number" required="required" step="0.0001" class="form-control"
+                                               id="costo" name="costo">
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Stock Minímo</label>
+                                    <div class="col-sm-9">
+                                        <input type="number" required="required" step="0.0001" class="form-control"
+                                               id="stock" name="stock">
+                                    </div>
+                                </div>
+                                <div class="input-group row">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Imagen</label>
+                                    <div class="col-sm-9">
+                                        <div class="custom-file">
+                                            <input type="file" class="custom-file-input" id="imagen" name="imagen">
+                                            <label class="custom-file-label" for="imagen">Seleccione</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group row" id="aplicacion" style="padding-top: 20px">
+                                    <label for="nombre" class="col-sm-3 col-form-label">Forma de Aplicación: Gramo x
+                                        Kilo</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" placeholder="4/2.2" class="form-control"
+                                               id="forma_aplicacion" name="forma_aplicacion">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- /.card-body -->
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-info">Registrar</button>
+                                <button type="button" data-dismiss="modal" class="btn btn-default float-right">
+                                    Cancelar
+                                </button>
+                            </div>
+                            <!-- /.card-footer -->
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/jszip/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/pdfmake/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/pdfmake/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
+    <script src="{% static 'plugins/bs-custom-file-input/bs-custom-file-input.min.js' %}"></script>
+    <script>
+        $(function () {
+            bsCustomFileInput.init();
+            subcategorias($("#categoria").val());
+            unidades($("#presentacion").val());
+            $("#example1").DataTable({
+                "responsive": true, "lengthChange": true, "autoWidth": true,
+                "buttons": ["copy", "excel", "pdf", "print", "colvis"]
+            }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+        });
+        $("#categoria").change(function () {
+            let combo = document.getElementById("categoria");
+            let selected = combo.options[combo.selectedIndex].text;
+            console.log(selected.toLowerCase())
+            if (selected.toLowerCase() === "insumos") {
+                $("#aplicacion").show()
+                $("#aplicacion").css('padding-top', '20px')
+            } else {
+                $("#aplicacion").hide()
+                $("#aplicacion").css('padding', '0px')
+            }
+        }).change();
+
+        $("#nuevo").click(function () {
+            $("#editarCategoria").attr('action', '/category/')
+            $("#nombre").val('')
+            $("#descripcion").val('')
+            $("#peso").val('')
+            $("#costo").val('')
+            $("#stock").val('')
+            $("#forma_aplicacion").val('')
+        })
+
+        function subcategorias(val) {
+            $.get("/getsubcategory/" + val + "/", function (data) {
+                $('#subcategoria').html("");
+                for (dato of JSON.parse(data)) {
+                    $('#subcategoria').append($('<option>', {
+                        value: dato.pk,
+                        text: dato.fields.nombre
+                    }))
+                }
+            })
+        }
+
+        function unidades(val) {
+            $.get("/getunidad/" + val, function (data) {
+                $('#unidad').html("");
+                for (dato of JSON.parse(data)) {
+                    $('#unidad').append($('<option>', {
+                        value: dato.pk,
+                        text: dato.fields.nombre
+                    }))
+                }
+
+            })
+        }
+
+        $("#nuevo").click(function () {
+            $("#editarProducto").attr("action", "/product/")
+            $("#nombre").val('')
+            $("#descripcion").val('')
+            $("#peso").val('')
+            $("#costo").val('')
+            $("#stock").val('')
+        });
+        $(".datos").click(function () {
+            $("#categoria").find('option').each(function () {
+                $(this).removeAttr('selected');
+                console.log($(this).val())
+            });
+            $("#presentacion").find('option').each(function () {
+                $(this).removeAttr('selected');
+                console.log($(this).val())
+            });
+            subcategorias($("#categoria").val());
+            unidades($("#presentacion").val());
+
+            let id = $(this).data('id');
+            let nombre = $(this).data("nombre");
+            let categoria = $(this).data("categoria");
+            let subcategoria = $(this).data("subcategoria")
+            let presentacion = $(this).data("presentacion");
+            let peso = $(this).data("peso").replaceAll(",", ".");
+            let unidad = $(this).data("unidad")
+            let costo = $(this).data("costo").replaceAll(",", ".");
+            let stock = $(this).data('stock').replaceAll(",", ".");
+            let forma_aplicacion = $(this).data('forma')
+            console.log(id, nombre, categoria, subcategoria, presentacion, peso, unidad, costo, stock)
+            $("#editarProducto").attr("action", "/product/?edit=" + id)
+            $("#nombre").val(nombre)
+            $("#forma_aplicacion").val(forma_aplicacion)
+            $("#categoria option[value=" + categoria + "]").attr("selected", true);
+            subcategorias(categoria);
+            setTimeout(function () {
+                $("#subcategoria option[value=" + subcategoria + "]").attr("selected", true);
+            }, 1000)
+            $("#presentacion option[value='" + presentacion + "']").attr("selected", true);
+            unidades(presentacion);
+            setTimeout(function () {
+                $("#unidad option[value='" + unidad + "']").attr("selected", true);
+            }, 1000)
+            $("#peso").val(peso)
+            $("#costo").val(costo)
+            $("#stock").val(stock)
+
+            $("#categoria").change(function () {
+                let combo = document.getElementById("categoria");
+                let selected = combo.options[combo.selectedIndex].text;
+                console.log(selected.toLowerCase())
+                if (selected.toLowerCase() === "insumos") {
+                    $("#aplicacion").show()
+                    $("#aplicacion").css('padding-top', '20px')
+                } else {
+                    $("#aplicacion").hide()
+                    $("#aplicacion").css('padding', '0px')
+                }
+            }).change();
+
+
+        });
+    </script>
+{% endblock %}
+
